@@ -1,0 +1,21 @@
+{
+  "name": "authflow",
+  "interface": {
+    "displayName": "Authflow"
+  },
+  "plugins": [
+    {
+      "name": "authflow",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/Snyder-Technology-LLC/authflow-plugin.git",
+        "ref": "main"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_USE"
+      },
+      "category": "Coding"
+    }
+  ]
+}

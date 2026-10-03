@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Manifests agree
+        run: node scripts/check-manifests.mjs
+      - name: Claude Code validation
+        run: |
+          npx -y @anthropic-ai/claude-code@latest plugin validate . --strict
+          npx -y @anthropic-ai/claude-code@latest plugin validate .claude-plugin/plugin.json --strict
+      - name: Gemini CLI validation
+        run: npx -y @google/gemini-cli@latest extensions validate .
