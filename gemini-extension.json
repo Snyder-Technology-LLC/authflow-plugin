@@ -1,6 +1,6 @@
 {
   "name": "authflow",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Put your MCP server on Authflow: free or paid access through one OAuth sign-in, with the agent doing the setup. Connects the Authflow management and docs MCPs and adds onboarding skills.",
   "mcpServers": {
     "authflow": {

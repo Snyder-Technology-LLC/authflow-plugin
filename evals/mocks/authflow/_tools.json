@@ -1,0 +1,724 @@
+{
+  "tools": [
+    {
+      "name": "authflow_list_workspaces",
+      "title": "List authorized workspaces",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "authflow_workspace_overview",
+      "title": "Read workspace overview and recent activity",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "description": "Workspace ID from authflow_list_workspaces."
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "required": [
+          "workspace_id"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "authflow_get_usage",
+      "title": "Read recorded credit usage and compensation",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "description": "Workspace ID from authflow_list_workspaces."
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "required": [
+          "workspace_id"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "authflow_get_earnings",
+      "title": "Read recent earnings by currency",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "description": "Workspace ID from authflow_list_workspaces."
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "required": [
+          "workspace_id"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "authflow_rename_workspace",
+      "title": "Rename the authorized workspace",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "description": "Workspace ID from authflow_list_workspaces."
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "workspace_id",
+          "name"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "authflow_list_resources",
+      "title": "List workspace MCPs",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "description": "Workspace ID from authflow_list_workspaces."
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "required": [
+          "workspace_id"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "authflow_get_resource",
+      "title": "Inspect MCP readiness and setup",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "description": "Workspace ID from authflow_list_workspaces."
+          },
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{0,31}$"
+          }
+        },
+        "required": [
+          "workspace_id",
+          "slug"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "authflow_create_resource",
+      "title": "Create an unpublished MCP draft",
+      "description": "Creates a free or paid draft, defaulting to gateway metering. Free and gateway-metered origins need no key. Paid origin_reported integrations require direct CLI secret-store delivery. Secrets are never returned in tool messages. Metering costs must be integers from 0 through 1,000,000. tool_units accepts at most 64 nonblank tool names of 1 through 128 characters; the serialized policy must fit within 8,192 characters.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "description": "Workspace ID from authflow_list_workspaces."
+          },
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{0,31}$"
+          },
+          "display_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "access_mode": {
+            "type": "string",
+            "enum": [
+              "free",
+              "paid"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3
+          },
+          "price_amount_minor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "credits_per_period": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "metering_mode": {
+            "type": "string",
+            "enum": [
+              "gateway_metered",
+              "origin_reported"
+            ]
+          },
+          "metering_default_units": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "tool_units": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            }
+          }
+        },
+        "required": [
+          "workspace_id",
+          "slug",
+          "display_name",
+          "access_mode"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "authflow_update_resource",
+      "title": "Update MCP name, offer, or metering",
+      "description": "Omitted fields are preserved. A supplied tool_units map replaces all tool overrides. Policy changes invalidate verification and publication; verify and explicitly republish. Metering costs must be integers from 0 through 1,000,000. tool_units accepts at most 64 nonblank tool names of 1 through 128 characters; the serialized policy must fit within 8,192 characters.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "description": "Workspace ID from authflow_list_workspaces."
+          },
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{0,31}$"
+          },
+          "display_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "access_mode": {
+            "type": "string",
+            "enum": [
+              "free",
+              "paid"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3
+          },
+          "price_amount_minor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "credits_per_period": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "metering_mode": {
+            "type": "string",
+            "enum": [
+              "gateway_metered",
+              "origin_reported"
+            ]
+          },
+          "metering_default_units": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "tool_units": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            }
+          }
+        },
+        "required": [
+          "workspace_id",
+          "slug"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "authflow_set_origin",
+      "title": "Set the MCP origin",
+      "description": "origin_base_uri is the private origin's scheme and host only, with no path, query, fragment or /mcp suffix: the gateway appends /mcp.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "description": "Workspace ID from authflow_list_workspaces."
+          },
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{0,31}$"
+          },
+          "origin_base_uri": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "required": [
+          "workspace_id",
+          "slug",
+          "origin_base_uri"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "authflow_set_custom_domain",
+      "title": "Set the MCP custom hostname",
+      "description": "Sets public_host (a subdomain you control) before first publication. public_path is optional: Rail uses /mcp the first time a host is set and keeps the stored path when it is omitted. This tool never clears a domain; to return to the slug URL, the owner runs authflow resource domain <slug> --file with {\"public_host\": null}.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "description": "Workspace ID from authflow_list_workspaces."
+          },
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{0,31}$"
+          },
+          "public_host": {
+            "type": "string",
+            "minLength": 1
+          },
+          "public_path": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "workspace_id",
+          "slug",
+          "public_host"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "authflow_verify_resource",
+      "title": "Verify an MCP",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "description": "Workspace ID from authflow_list_workspaces."
+          },
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{0,31}$"
+          }
+        },
+        "required": [
+          "workspace_id",
+          "slug"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "authflow_publish_resource",
+      "title": "Publish an MCP",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "description": "Workspace ID from authflow_list_workspaces."
+          },
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{0,31}$"
+          }
+        },
+        "required": [
+          "workspace_id",
+          "slug"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "authflow_disable_resource",
+      "title": "Disable an MCP",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "description": "Workspace ID from authflow_list_workspaces."
+          },
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{0,31}$"
+          }
+        },
+        "required": [
+          "workspace_id",
+          "slug"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "authflow_refresh_domain",
+      "title": "Refresh domain for an MCP",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "description": "Workspace ID from authflow_list_workspaces."
+          },
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{0,31}$"
+          }
+        },
+        "required": [
+          "workspace_id",
+          "slug"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "authflow_stripe_status",
+      "title": "Read Stripe connection readiness",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "description": "Workspace ID from authflow_list_workspaces."
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "required": [
+          "workspace_id"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "authflow_stripe_action",
+      "title": "Prepare a signed-in Stripe connection step",
+      "description": "Returns a first-party browser link. The user must sign in and confirm before Stripe is opened.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "description": "Workspace ID from authflow_list_workspaces."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "onboard",
+              "connect_existing"
+            ]
+          }
+        },
+        "required": [
+          "workspace_id",
+          "kind"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "authflow_integration_plan",
+      "title": "Read resource-specific origin integration guidance",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "description": "Workspace ID from authflow_list_workspaces."
+          },
+          "framework": {
+            "type": "string",
+            "enum": [
+              "dotnet",
+              "typescript",
+              "python",
+              "proxy"
+            ]
+          },
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{0,31}$"
+          }
+        },
+        "required": [
+          "workspace_id",
+          "framework",
+          "slug"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "authflow_search_docs",
+      "title": "Search Authflow documentation",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "limit": {
+            "default": 8,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 25
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "authflow_get_doc",
+      "title": "Read an Authflow documentation page or section",
+      "description": "Use a path or documentation URL returned by search. Retrieval is limited to Authflow's indexed public documentation.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          },
+          "section": {
+            "type": "string",
+            "maxLength": 256
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "authflow_send_feedback",
+      "title": "Send feedback to the Authflow team",
+      "description": "Send feedback to the Authflow team. Call this once per distinct issue when a tool error, doc, or missing capability made you guess, retry with different arguments, work around something, or ask the user to do by hand what you expected a tool to do \u2014 or any time you have a suggestion (kind: feedback). Report after you have worked around the problem, then continue your task; no reply will come. Never include API keys, tokens, secrets, or end-user personal data.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspace_id": {
+            "description": "Workspace ID; must match the selected CLI login.",
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "bug",
+              "docs_gap",
+              "missing_tool",
+              "confusing",
+              "workaround",
+              "feedback",
+              "other"
+            ],
+            "description": "bug, docs_gap, missing_tool, confusing, workaround, feedback (a comment or suggestion, not a problem), or other."
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1,
+            "description": "One line saying what happened, at most 200 characters."
+          },
+          "severity": {
+            "description": "blocked, slowed, or minor. Omit for kind feedback.",
+            "type": "string",
+            "enum": [
+              "blocked",
+              "slowed",
+              "minor"
+            ]
+          },
+          "details": {
+            "description": "What you tried, what you expected, and what happened (at most 4000 characters).",
+            "type": "string"
+          },
+          "tool_name": {
+            "description": "The tool involved, if any.",
+            "type": "string"
+          },
+          "error_text": {
+            "description": "The error text, word for word.",
+            "type": "string"
+          },
+          "workaround": {
+            "description": "How you got unstuck, if you did.",
+            "type": "string"
+          },
+          "suggested_fix": {
+            "description": "The tool, argument, or documentation change that would have avoided this.",
+            "type": "string"
+          },
+          "resource_slug": {
+            "description": "The MCP slug involved, if any.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "summary"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    }
+  ]
+}
