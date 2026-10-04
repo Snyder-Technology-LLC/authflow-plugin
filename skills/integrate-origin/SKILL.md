@@ -19,7 +19,7 @@ The gateway forwards each consumer request to the origin with a signed `X-Authfl
 
 `proxy` puts Authflow's origin proxy in front of the unchanged server. The proxy verifies the identity and forwards it on. **In this preview the proxy container image is not publicly distributed**, and `authflow scaffold --receipt` cannot read current receipts. Tell the user this path is not self-serve yet, and prefer a native integration whenever the code can change.
 
-Only the packages named in the plan exist. Call `list_integration_paths` from the `authflow-docs` tools before looking for an SDK in a package registry. Do not guess package names.
+Only the packages named in the plan exist. Call `list_integration_paths` from the `authflow-docs` tools before looking for an SDK in a package registry. Do not guess package names. If the user's language has no published SDK, or a plan step is unclear, report it with `authflow_send_feedback` (`kind` `missing_tool` or `docs_gap`) after you have chosen a path.
 
 ## 2. Get the plan for this resource
 

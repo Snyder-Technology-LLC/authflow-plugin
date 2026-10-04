@@ -9,12 +9,12 @@ Only a paid resource with `metering_mode` `origin_reported` needs an origin key.
 
 The key never passes through the conversation. The `authflow` CLI writes it straight into a secret store. Do not ask the user to paste a key, do not print one, and do not put one in a tool argument, a committed file, or a log.
 
-This needs a shell on a machine that can reach the secret destination, and Node.js 20 or later.
+This needs a shell on a machine that can reach the secret destination, and Node.js 22.12 or later.
 
 ## 1. Authorize the CLI
 
 ```bash
-npx -y -p authflow-cli@0.6.1 authflow login --issuer https://staging.rails.authflow.ai --workspace <workspace-id>
+npx -y -p authflow-cli@0.7.0 authflow login --issuer https://staging.rails.authflow.ai --workspace <workspace-id>
 ```
 
 This opens the browser for sign-in and consent and stores the login in the operating system's credential store. Use the workspace id from `authflow_list_workspaces`. `--no-browser` prints the sign-in URL instead of opening it. Either way, the browser's callback must reach this machine.
@@ -32,7 +32,7 @@ For `env-file`, confirm the file is in `.gitignore` before writing it.
 ## 3. Rotate and deliver
 
 ```bash
-npx -y -p authflow-cli@0.6.1 authflow resource rotate-key <slug> --issuer https://staging.rails.authflow.ai --workspace <workspace-id> --write-secrets <keyvault|user-secrets|env-file> --secret-destination <destination>
+npx -y -p authflow-cli@0.7.0 authflow resource rotate-key <slug> --issuer https://staging.rails.authflow.ai --workspace <workspace-id> --write-secrets <keyvault|user-secrets|env-file> --secret-destination <destination>
 ```
 
 The destination is validated before a key is issued. Key Vault secret names include the resource identity, so two resources do not overwrite each other.

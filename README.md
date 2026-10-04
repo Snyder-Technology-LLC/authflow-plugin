@@ -71,6 +71,10 @@ Open the repository that contains your MCP server and ask:
 
 The agent never needs a key or token from you. You complete sign-in, consent, and Stripe in the browser. Publishing always waits for your confirmation.
 
+## Feedback
+
+When an Authflow error, doc, or missing tool makes the agent guess or work around something, the skills have it report that once with `authflow_send_feedback` (or `send_feedback` on `authflow-docs`), then carry on. Reports go to the Authflow team, never include keys or your data, and are attributed to your workspace when you are signed in. You can send one yourself with `npx -y -p authflow-cli@0.7.0 authflow feedback --kind feedback --summary "..."`.
+
 ## Repository layout
 
 One repository serves every client; each reads its own manifest, and all of them share `skills/`.
