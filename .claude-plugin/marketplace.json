@@ -11,7 +11,7 @@
     {
       "name": "authflow",
       "source": "./",
-      "description": "Connect the Authflow management and docs MCPs and onboard your MCP server with guided skills.",
+      "description": "Connect the Authflow management MCP (with docs for signed-in agents) and onboard your MCP server with guided skills.",
       "category": "development"
     }
   ]

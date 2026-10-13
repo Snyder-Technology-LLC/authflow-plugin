@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
   pull_request:
+  schedule:
+    # Daily: catches an allowlist or hostname change on Authflow's side, not just changes here.
+    - cron: "17 13 * * *"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -18,6 +22,9 @@ jobs:
           node-version: 22
       - name: Manifests agree
         run: node scripts/check-manifests.mjs
+      # A GitHub-hosted runner is outside every Authflow allowlist, like a real user.
+      - name: MCP endpoints answer from outside
+        run: node scripts/check-endpoints.mjs
       - name: Claude Code validation
         run: |
           npx -y @anthropic-ai/claude-code@latest plugin validate . --strict

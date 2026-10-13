@@ -3,10 +3,6 @@
     "authflow": {
       "type": "http",
       "url": "https://staging.rails.authflow.ai/management/mcp"
-    },
-    "authflow-docs": {
-      "type": "http",
-      "url": "https://docs.authflow.ai/mcp"
     }
   }
 }

@@ -2,12 +2,11 @@
 
 Put your MCP server on [Authflow](https://authflow.ai). Consumers get one OAuth sign-in, free or paid access, and Stripe subscriptions. Your coding agent does the setup.
 
-The plugin connects two remote MCP servers and adds onboarding skills:
+The plugin connects one remote MCP server and adds onboarding skills:
 
 | MCP server | URL | Auth |
 | --- | --- | --- |
 | `authflow` (management) | `https://staging.rails.authflow.ai/management/mcp` | Sign in with Google or GitHub in the browser |
-| `authflow-docs` | `https://docs.authflow.ai/mcp` | None |
 
 | Skill | What it does |
 | --- | --- |
@@ -52,13 +51,12 @@ Then run `/mcp auth authflow`.
 
 Teams and Enterprise workspaces can import this repository as a team marketplace (**Dashboard → Plugins & MCPs → Import from Repo**). Cursor reads the root `plugin.json` and `mcp.json`.
 
-On other plans, add the two servers to `~/.cursor/mcp.json` until the plugin is listed in the Cursor Marketplace:
+On other plans, add the server to `~/.cursor/mcp.json` until the plugin is listed in the Cursor Marketplace:
 
 ```json
 {
   "mcpServers": {
-    "authflow": { "url": "https://staging.rails.authflow.ai/management/mcp" },
-    "authflow-docs": { "url": "https://docs.authflow.ai/mcp" }
+    "authflow": { "url": "https://staging.rails.authflow.ai/management/mcp" }
   }
 }
 ```
@@ -73,7 +71,7 @@ The agent never needs a key or token from you. You complete sign-in, consent, an
 
 ## Feedback
 
-When an Authflow error, doc, or missing tool makes the agent guess or work around something, the skills have it report that once with `authflow_send_feedback` (or `send_feedback` on `authflow-docs`), then carry on. Reports go to the Authflow team, never include keys or your data, and are attributed to your workspace when you are signed in. You can send one yourself with `npx -y -p authflow-cli@0.7.0 authflow feedback --kind feedback --summary "..."`.
+When an Authflow error, doc, or missing tool makes the agent guess or work around something, the skills have it report that once with `authflow_send_feedback`, then carry on. Reports go to the Authflow team, never include keys or your data, and are attributed to your workspace when you are signed in. You can send one yourself with `npx -y -p authflow-cli@0.7.0 authflow feedback --kind feedback --summary "..."`.
 
 ## Repository layout
 
@@ -89,9 +87,9 @@ One repository serves every client; each reads its own manifest, and all of them
 
 ## Docs
 
-- [Onboard with your agent](https://docs.authflow.ai/docs/onboarding/agent)
-- [Origin Protocol v1](https://docs.authflow.ai/docs/protocol/v1)
-- [CLI](https://docs.authflow.ai/docs/tools/cli)
+During the preview, Authflow's documentation is served to signed-in agents by the management MCP (`authflow_search_docs`, `authflow_get_doc`, and the resource-specific `authflow_integration_plan`). Once you are signed in, ask your agent for any page, for example the onboarding guide, Origin Protocol v1, or the CLI reference.
+
+`node scripts/check-endpoints.mjs` checks, from outside any allowlist, that every MCP URL in every manifest answers. CI runs it on every change and daily.
 
 ## License
 
