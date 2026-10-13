@@ -7,7 +7,7 @@ description: Put an MCP server on Authflow end to end - create the resource, int
 
 Authflow sits in front of the user's MCP server (the **origin**). Consumers connect to an Authflow **gateway URL**, sign in once with OAuth, pay if the MCP is paid, and the gateway forwards each request to the origin with a signed identity header. The origin verifies that header and serves the request.
 
-You drive this through the `authflow` MCP server (tools named `authflow_*`). The `authflow-docs` MCP server is public reference material.
+You drive this through the `authflow` MCP server (tools named `authflow_*`). It also serves Authflow's documentation to signed-in agents through `authflow_search_docs` and `authflow_get_doc`.
 
 ## Before you start
 
@@ -36,6 +36,6 @@ Follow these steps in order. Report each tool result's `status`, `pending_requir
 - Changing the offer, metering, origin, or domain invalidates verification and publication. Verify again, then ask before publishing again. Changing only the display name keeps verification.
 - The custom hostname cannot change after the MCP first goes live.
 - A paid MCP needs a Stripe account with charges enabled before it can publish. Authflow takes a 9% platform fee; the creator's Stripe account is the merchant of record.
-- For detail, use `authflow_search_docs` and `authflow_get_doc`, or the `authflow-docs` tools (`get_protocol_section` for one Origin Protocol section). If the docs do not answer a question, say so instead of guessing, and report the gap with `authflow_send_feedback`.
+- For detail, use `authflow_search_docs` and `authflow_get_doc` (pass a `section` anchor to read one part of a page, such as one Origin Protocol section). If the docs do not answer a question, say so instead of guessing, and report the gap with `authflow_send_feedback`.
 - **Report friction.** When an Authflow tool error, doc, or missing capability makes you guess, retry with different arguments, work around something, or ask the user to do by hand what you expected a tool to do, call `authflow_send_feedback` once for that issue, then continue the task. Pick the `kind` that fits (`bug`, `docs_gap`, `missing_tool`, `confusing`, `workaround`, `feedback` for a suggestion, or `other`), give a one-line `summary`, and add the error text and your workaround when you have them. Never put keys, tokens, or the user's data in it. Nobody replies; it goes to the Authflow team, who fix the docs, errors, and tools behind it. It is not a substitute for telling the user what happened.
 - This release targets Authflow staging (`https://staging.rails.authflow.ai`). Production Rail is not live yet.

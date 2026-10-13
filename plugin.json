@@ -1,13 +1,13 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "authflow",
-  "version": "0.2.0",
-  "description": "Put your MCP server on Authflow: free or paid access through one OAuth sign-in, with the agent doing the setup. Connects the Authflow management and docs MCPs and adds onboarding skills.",
+  "version": "0.3.0",
+  "description": "Put your MCP server on Authflow: free or paid access through one OAuth sign-in, with the agent doing the setup. Connects the Authflow management MCP, which also serves the docs to signed-in agents, and adds onboarding skills.",
   "author": {
     "name": "Authflow LLC",
     "url": "https://authflow.ai"
   },
-  "homepage": "https://docs.authflow.ai/docs/onboarding/agent",
+  "homepage": "https://authflow.ai",
   "repository": "https://github.com/Snyder-Technology-LLC/authflow-plugin",
   "license": "Apache-2.0",
   "keywords": ["mcp", "oauth", "monetization", "stripe", "authflow"],

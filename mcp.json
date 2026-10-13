@@ -4,10 +4,6 @@
     "authflow": {
       "type": "streamable-http",
       "url": "https://staging.rails.authflow.ai/management/mcp"
-    },
-    "authflow-docs": {
-      "type": "streamable-http",
-      "url": "https://docs.authflow.ai/mcp"
     }
   }
 }

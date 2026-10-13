@@ -19,7 +19,7 @@ The gateway forwards each consumer request to the origin with a signed `X-Authfl
 
 `proxy` puts Authflow's origin proxy in front of the unchanged server. The proxy verifies the identity and forwards it on. **In this preview the proxy container image is not publicly distributed**, and `authflow scaffold --receipt` cannot read current receipts. Tell the user this path is not self-serve yet, and prefer a native integration whenever the code can change.
 
-Only the packages named in the plan exist. Call `list_integration_paths` from the `authflow-docs` tools before looking for an SDK in a package registry. Do not guess package names. If the user's language has no published SDK, or a plan step is unclear, report it with `authflow_send_feedback` (`kind` `missing_tool` or `docs_gap`) after you have chosen a path.
+Only the packages named in the plan exist. Read `authflow_get_doc` with path `/docs/onboarding/integration-paths` before looking for an SDK in a package registry. Do not guess package names. If the user's language has no published SDK, or a plan step is unclear, report it with `authflow_send_feedback` (`kind` `missing_tool` or `docs_gap`) after you have chosen a path.
 
 ## 2. Get the plan for this resource
 
@@ -27,7 +27,7 @@ Call `authflow_integration_plan` with `workspace_id`, `slug`, and `framework`. I
 
 - Put configuration values in the app's normal configuration, not hard-coded in source.
 - The plan never contains a secret. If the plan says the origin needs a key (paid `origin_reported` only), use the `origin-key` skill.
-- If the resource does not exist yet, the `authflow-docs` tool `get_integration_plan` gives the generic steps. Switch to the resource-specific plan once the draft exists.
+- If the resource does not exist yet, `authflow_get_doc` with path `/docs/onboarding/integration-plans` gives the generic steps. Better still, create the draft first (`authflow_create_resource` needs no Stripe or origin URL) so the plan carries the real values.
 
 ## 3. Rules every origin must follow
 
@@ -39,7 +39,7 @@ Call `authflow_integration_plan` with `workspace_id`, `slug`, and `framework`. I
 - Give every tool a `title` and `readOnlyHint` / `destructiveHint` annotations.
 - Lock ingress down so consumers can only reach the origin through the gateway.
 
-For exact wording, use `get_protocol_section` from the `authflow-docs` tools. The useful anchors are `4-verification-algorithm`, `35-worked-example-test-vector`, `62-exact-origin-response`, and `7-usage-reporting-endpoint`. Test signature verification against the section 3.5 vector without applying expiry; test expiry separately.
+For exact wording, use `authflow_get_doc` with path `/docs/protocol/v1` and a `section` anchor. The useful anchors are `4-verification-algorithm`, `35-worked-example-test-vector`, `62-exact-origin-response`, and `7-usage-reporting-endpoint`. Test signature verification against the section 3.5 vector without applying expiry; test expiry separately.
 
 ## 4. Confirm with the rail
 
