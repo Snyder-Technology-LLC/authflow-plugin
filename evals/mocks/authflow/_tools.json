@@ -3,7 +3,7 @@
     {
       "name": "authflow_create_resource",
       "title": "Create an unpublished MCP draft",
-      "description": "Create a free or paid draft. No Stripe account is needed for a draft or free MCP. Gateway metering is the default. Free and gateway-metered origins need no key; only paid origin_reported needs direct secret-store delivery. Keys never appear in tool messages. Metering costs must be integers from 0 through 1,000,000. tool_units accepts at most 64 nonblank tool names of 1 through 128 characters; the serialized policy must fit within 8,192 characters.",
+      "description": "Create a free or paid draft. No Stripe account is needed for a draft or free MCP. Gateway metering is the default, and every tool of a paid gateway-metered MCP starts at one credit per call. Free and gateway-metered origins need no key; only paid origin_reported needs direct secret-store delivery. Keys never appear in tool messages. metering_mode is gateway_metered or origin_reported. Per-tool access, credits, and limits are resource tools, not resource fields, and change without republishing.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -35,20 +35,6 @@
           "metering_mode": {
             "type": "string",
             "default": "gateway_metered"
-          },
-          "metering_default_units": {
-            "type": "integer",
-            "default": 1
-          },
-          "tool_units": {
-            "type": [
-              "object",
-              "null"
-            ],
-            "additionalProperties": {
-              "type": "integer"
-            },
-            "default": null
           }
         },
         "required": [
@@ -429,6 +415,31 @@
       }
     },
     {
+      "name": "authflow_get_resource_tools",
+      "title": "Read resource tool settings",
+      "description": "Read who can call each of the MCP's resource tools (the tools on the creator's own MCP, not this server's), the credits a call costs, and per-user limits: the enforced version, any version under test, the resource tools last discovered on the origin, rules_apply (false for paid origin_reported MCPs, which keep the default), and admits_non_subscribers. Read it before saving resource tool settings.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspace_id": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace_id",
+          "slug"
+        ]
+      },
+      "annotations": {
+        "title": "Read resource tool settings",
+        "destructiveHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
       "name": "authflow_get_usage",
       "title": "Read recorded credit usage and compensation",
       "description": "Read the last 30 days of charged work and compensated failures. This is ledger usage, not a count of all proxy traffic; free requests and unpaid failures are excluded.",
@@ -564,6 +575,31 @@
       }
     },
     {
+      "name": "authflow_refresh_resource_tools",
+      "title": "Refresh discovered resource tools",
+      "description": "List the MCP's resource tools again from its origin and store the result, which fills the editor; access and credits never depend on it. Returns status ok with the resource tools found, or failed with the reason.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspace_id": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace_id",
+          "slug"
+        ]
+      },
+      "annotations": {
+        "title": "Refresh discovered resource tools",
+        "destructiveHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
       "name": "authflow_rename_workspace",
       "title": "Rename the authorized workspace",
       "description": "Rename the authorized workspace. Only its display name changes.",
@@ -584,6 +620,35 @@
       },
       "annotations": {
         "title": "Rename the authorized workspace",
+        "destructiveHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "authflow_restore_resource_tools_version",
+      "title": "Restore a resource tool settings version",
+      "description": "Enforce a copy of an earlier version of the MCP's resource tool settings as a new version; the history keeps every version and a running test keeps running. Use a version number returned by authflow_get_resource_tools or authflow_update_resource_tools. A version that no longer fits the MCP's access or metering mode is refused with errors.settings.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspace_id": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "workspace_id",
+          "slug",
+          "version"
+        ]
+      },
+      "annotations": {
+        "title": "Restore a resource tool settings version",
         "destructiveHint": false,
         "readOnlyHint": false
       }
@@ -856,9 +921,52 @@
       }
     },
     {
+      "name": "authflow_test_resource_tool_call",
+      "title": "Dry-run a resource tool call",
+      "description": "Ask what the MCP's resource tool settings decide for one call to one of its resource tools, by a subscriber or not: allow with its credits and limit, or refuse with its reason. Nothing is called, charged, or logged.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspace_id": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "tool": {
+            "description": "The resource tool's name, exactly as the MCP lists it.",
+            "type": "string"
+          },
+          "subscriber": {
+            "description": "Whether the caller has an active subscription.",
+            "type": "boolean"
+          },
+          "version": {
+            "description": "The resource tool settings version to evaluate; omit for the enforced one.",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "workspace_id",
+          "slug",
+          "tool",
+          "subscriber"
+        ]
+      },
+      "annotations": {
+        "title": "Dry-run a resource tool call",
+        "destructiveHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
       "name": "authflow_update_resource",
       "title": "Update MCP name, offer, or metering",
-      "description": "Omitted fields are preserved. A supplied tool_units map replaces all overrides. Policy changes invalidate verification and publication; verify and explicitly republish. Metering costs must be integers from 0 through 1,000,000. tool_units accepts at most 64 nonblank tool names of 1 through 128 characters; the serialized policy must fit within 8,192 characters.",
+      "description": "Omitted fields are preserved. Offer and metering_mode changes invalidate verification and publication; verify and explicitly republish. metering_mode is gateway_metered or origin_reported. Per-tool access, credits, and limits are resource tools, not resource fields, and change without republishing.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -910,23 +1018,6 @@
               "null"
             ],
             "default": null
-          },
-          "metering_default_units": {
-            "type": [
-              "integer",
-              "null"
-            ],
-            "default": null
-          },
-          "tool_units": {
-            "type": [
-              "object",
-              "null"
-            ],
-            "additionalProperties": {
-              "type": "integer"
-            },
-            "default": null
           }
         },
         "required": [
@@ -941,9 +1032,44 @@
       }
     },
     {
+      "name": "authflow_update_resource_tools",
+      "title": "Save resource tool settings",
+      "description": "Save the MCP's resource tool settings as a new numbered version. mode enforce applies them live within 30 seconds, without verifying or republishing again; mode test only evaluates and logs what they would refuse, beside the enforced version, until you save them with enforce. Earlier versions stay restorable with authflow_restore_resource_tools_version. Invalid settings are refused with every problem listed in errors.settings.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspace_id": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "settings": {
+            "description": "The complete resource tool settings document; it replaces the current one. Example: {\"default\":{\"access\":\"subscribers\",\"credits\":1},\"tools\":{\"generate_video\":{\"access\":\"subscribers\",\"credits\":50,\"limit\":{\"count\":10,\"per\":\"hour\"}},\"list_styles\":{\"access\":\"anyone\",\"credits\":0},\"delete_render\":{\"access\":\"off\",\"credits\":0,\"message\":\"Back soon\"}}}. default is the rule for every resource tool not named in tools (names are case-sensitive). A rule has access (subscribers; anyone, meaning anyone signed in; or off), credits per call (0 to 1,000,000, and 0 unless access is subscribers), an optional per-user limit {count, per: minute, hour or day}, and, only when access is off, an optional message of at most 280 characters. A free MCP cannot use subscribers; a paid origin_reported MCP must keep {\"default\":{\"access\":\"subscribers\",\"credits\":0},\"tools\":{}}.",
+            "type": "object"
+          },
+          "mode": {
+            "description": "enforce applies the resource tool settings now; test evaluates and logs them without enforcing them.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace_id",
+          "slug",
+          "settings",
+          "mode"
+        ]
+      },
+      "annotations": {
+        "title": "Save resource tool settings",
+        "destructiveHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
       "name": "authflow_verify_resource",
       "title": "Verify MCP origin conformance",
-      "description": "Run the conformance probe against the configured origin. A pass applies only to the current configuration; a later offer, metering, origin, or domain change requires verifying again.",
+      "description": "Run the conformance probe against the configured origin. A pass applies only to the current configuration; a later offer, metering mode, origin, or domain change requires verifying again.",
       "inputSchema": {
         "type": "object",
         "properties": {

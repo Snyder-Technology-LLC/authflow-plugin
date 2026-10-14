@@ -61,7 +61,7 @@ Never promise a reply, a fix, or a date. Nobody replies here.
 If the `authflow` MCP is not connected, or sign-in failed (which may be what you are reporting), send the report from a shell. It works without signing in:
 
 ```bash
-npx -y -p authflow-cli@0.9.0 authflow feedback --issuer https://staging.rails.authflow.ai --kind <kind> --summary "<one line>"
+npx -y -p authflow-cli@0.10.0 authflow feedback --issuer https://staging.rails.authflow.ai --kind <kind> --summary "<one line>"
 ```
 
 The optional flags match the fields above: `--severity`, `--goal`, `--details`, `--tool`, `--request-id`, `--error`, `--workaround`, `--suggested-fix`, `--slug`, and `--user-requested`. It prints the same `feedback_id`, `status`, and `next`. It needs Node.js 22.12 or later. The same consent and privacy rules apply.

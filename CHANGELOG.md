@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.1 - 2026-10-14
+
+- The README and the `feedback` skill pin `authflow-cli@0.10.0`, the release with `authflow tools` (per-tool access, credits and limits on a creator's MCP).
+- Manifests: version 0.4.1.
+- Eval mocks carry the hosted management MCP's current tool list, which adds the five resource-tools management tools (`authflow_get_resource_tools`, `authflow_update_resource_tools`, `authflow_test_resource_tool_call`, `authflow_restore_resource_tools_version`, `authflow_refresh_resource_tools`), and the doctor mocks pin the new CLI.
+
 ## 0.4.0 - 2026-10-13
 
 - New `feedback` skill. It picks the first `kind` that fits (`security`, `client_compat`, `bug`, `unclear_error`, `docs_gap`, `missing_capability`, `user_message`, `other`) and a `severity`, copies `request_id` from the Authflow error, sends without asking only when the report is about Authflow's own tools, errors, or docs, and asks first, showing the draft, when it would include the user's code, configuration, URLs, or words. It tells the user the returned `feedback_id` and does not resend when the status is `duplicate`. Without the MCP, it falls back to `authflow feedback` from `authflow-cli` 0.9.0, which works without signing in. `onboard`, `troubleshoot`, and `integrate-origin` point at it instead of repeating the rules, and `pricing`, `operate`, `origin-key`, and `test-as-consumer` gained the same one-line pointer.
