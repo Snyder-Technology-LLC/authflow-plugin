@@ -127,7 +127,7 @@ When an Authflow error, doc, or missing tool makes the agent guess or work aroun
 You can send one yourself, signed in or not:
 
 ```bash
-npx -y -p authflow-cli@0.9.0 authflow feedback --issuer https://staging.rails.authflow.ai --kind docs_gap --summary "..."
+npx -y -p authflow-cli@0.10.0 authflow feedback --issuer https://staging.rails.authflow.ai --kind docs_gap --summary "..."
 ```
 
 `--kind` is one of `bug`, `client_compat`, `unclear_error`, `docs_gap`, `missing_capability`, `security`, `user_message`, or `other`.

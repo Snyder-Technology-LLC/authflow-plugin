@@ -4,7 +4,7 @@
       "type": "http",
       "url": "https://staging.rails.authflow.ai/management/mcp",
       "headers": {
-        "Authflow-Plugin-Version": "0.4.0",
+        "Authflow-Plugin-Version": "0.4.1",
         "Authflow-Plugin-Client": "claude-code"
       }
     }
