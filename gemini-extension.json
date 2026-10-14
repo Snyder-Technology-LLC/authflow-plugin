@@ -1,10 +1,14 @@
 {
   "name": "authflow",
-  "version": "0.3.0",
-  "description": "Put your MCP server on Authflow: free or paid access through one OAuth sign-in, with the agent doing the setup. Connects the Authflow management MCP, which also serves the docs to signed-in agents, and adds onboarding skills.",
+  "version": "0.4.0",
+  "description": "Put your MCP server on Authflow: free or paid access through one OAuth sign-in, with the agent doing the setup. Connects the Authflow management MCP, which also serves the docs to signed-in agents, and adds skills to onboard, check health, and report problems to Authflow.",
   "mcpServers": {
     "authflow": {
       "httpUrl": "https://staging.rails.authflow.ai/management/mcp",
+      "headers": {
+        "Authflow-Plugin-Version": "0.4.0",
+        "Authflow-Plugin-Client": "gemini-cli"
+      },
       "oauth": {
         "enabled": true
       }

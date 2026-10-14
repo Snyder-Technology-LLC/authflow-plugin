@@ -5,29 +5,73 @@ on:
     branches: [main]
   pull_request:
   schedule:
-    # Daily: catches an allowlist or hostname change on Authflow's side, not just changes here.
+    # Daily: catches an allowlist or hostname change on Authflow's side, and an authflow-cli release
+    # the plugin has not caught up with, not just changes here.
     - cron: "17 13 * * *"
   workflow_dispatch:
 
 permissions:
   contents: read
 
+# Exact versions, so a validator or schema tool release cannot change the verdict on its own.
+env:
+  CLAUDE_CODE_VERSION: 2.1.287
+  GEMINI_CLI_VERSION: 0.62.0
+  AJV_CLI_VERSION: 5.0.0
+
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
       - name: Manifests agree
         run: node scripts/check-manifests.mjs
+      - name: Tool names exist
+        run: node scripts/check-refs.mjs
       # A GitHub-hosted runner is outside every Authflow allowlist, like a real user.
       - name: MCP endpoints answer from outside
         run: node scripts/check-endpoints.mjs
+      - name: authflow-cli pin is on npm
+        if: github.event_name != 'schedule'
+        run: node scripts/check-npm-pin.mjs
+      - name: authflow-cli pin is on npm and is the latest
+        if: github.event_name == 'schedule'
+        run: node scripts/check-npm-pin.mjs --latest
       - name: Claude Code validation
         run: |
-          npx -y @anthropic-ai/claude-code@latest plugin validate . --strict
-          npx -y @anthropic-ai/claude-code@latest plugin validate .claude-plugin/plugin.json --strict
+          npx -y "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" plugin validate . --strict
+          npx -y "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" plugin validate .claude-plugin/plugin.json --strict
       - name: Gemini CLI validation
-        run: npx -y @google/gemini-cli@latest extensions validate .
+        run: npx -y "@google/gemini-cli@${GEMINI_CLI_VERSION}" extensions validate .
+      - name: Agent Plugins schemas
+        run: |
+          schemas="$RUNNER_TEMP/agent-plugins"
+          mkdir -p "$schemas"
+          for name in plugin mcp; do
+            curl -fsSL --retry 3 "https://agent-plugins.org/schemas/1.0.0/$name.schema.json" -o "$schemas/$name.schema.json"
+            npx -y "ajv-cli@${AJV_CLI_VERSION}" validate --spec=draft2020 --strict=false -s "$schemas/$name.schema.json" -d "$name.json"
+          done
+
+  # Every change to a shipped file is a release, so it needs a higher version and a CHANGELOG entry.
+  version-bump:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Shipped changes raise the version
+        env:
+          BASE_REF: origin/${{ github.base_ref }}
+        run: node scripts/check-version-bump.mjs

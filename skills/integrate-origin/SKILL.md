@@ -19,7 +19,7 @@ The gateway forwards each consumer request to the origin with a signed `X-Authfl
 
 `proxy` puts Authflow's origin proxy in front of the unchanged server. The proxy verifies the identity and forwards it on. **In this preview the proxy container image is not publicly distributed**, and `authflow scaffold --receipt` cannot read current receipts. Tell the user this path is not self-serve yet, and prefer a native integration whenever the code can change.
 
-Only the packages named in the plan exist. Read `authflow_get_doc` with path `/docs/onboarding/integration-paths` before looking for an SDK in a package registry. Do not guess package names. If the user's language has no published SDK, or a plan step is unclear, report it with `authflow_send_feedback` (`kind` `missing_tool` or `docs_gap`) after you have chosen a path.
+Only the packages named in the plan exist. Read `authflow_get_doc` with path `/docs/onboarding/integration-paths` before looking for an SDK in a package registry. Do not guess package names. If the user's language has no published SDK, or a plan step is unclear, report it once with the `feedback` skill after you have chosen a path.
 
 ## 2. Get the plan for this resource
 
@@ -43,4 +43,4 @@ For exact wording, use `authflow_get_doc` with path `/docs/protocol/v1` and a `s
 
 ## 4. Confirm with the rail
 
-Deploy, call `authflow_set_origin`, then `authflow_verify_resource`. The rail's probe is the source of truth. Do not hand-roll signed requests to test the origin. If verification fails, use the `troubleshoot` skill.
+Deploy, call `authflow_set_origin`, then run `authflow_doctor` with the slug, `groups` `origin`, and `depth` `full` (the `doctor` skill), and fix what it reports. Then call `authflow_verify_resource`. The rail's probe is the source of truth. Do not hand-roll signed requests to test the origin. If verification fails, use the `troubleshoot` skill.
