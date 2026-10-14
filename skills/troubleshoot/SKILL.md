@@ -5,7 +5,9 @@ description: Diagnose why an Authflow MCP will not verify, publish, connect, or 
 
 # Troubleshoot Authflow
 
-Start from state, not memory: call `authflow_get_resource` (and `authflow_stripe_status` for paid MCPs). Report `pending_requirements` and `allowed_actions` exactly as returned.
+Start with `authflow_doctor` (the `doctor` skill), with the `slug` and `depth` `full`. Its `next_action` and each failing check's `fix` usually name the problem and who has to fix it.
+
+Then work from state, not memory: call `authflow_get_resource` (and `authflow_stripe_status` for paid MCPs). Report `pending_requirements` and `allowed_actions` exactly as returned.
 
 ## pending_requirements
 
@@ -18,7 +20,7 @@ Start from state, not memory: call `authflow_get_resource` (and `authflow_stripe
 | `stripe_onboarding_complete` | Paid, Stripe charges not enabled yet | The user finishes Stripe's requirements in the browser; recheck `authflow_stripe_status` |
 | `paid_offer` | Paid, but price or credits are zero | `authflow_update_resource` with a positive price and credits |
 
-`409 resource_not_ready` from `authflow_publish_resource` means one of these is still pending. Resolve them; do not keep retrying publish.
+`409 resource_not_ready` from `authflow_publish_resource` means one of these is still pending. Resolve them; do not keep retrying publish. Publishing also needs a passing verification from the last 24 hours; if the last one is older, verify again.
 
 ## Custom domain states
 
@@ -52,16 +54,15 @@ The origin rejected a request's identity header. If a consumer or client sees th
 
 ## Management MCP errors
 
-- `401`/`403` with "Reconnect the management client": the sign-in expired, was revoked, or was granted read-only. Re-authorize the `authflow` MCP in the client, approving read and write access for the right workspace.
-- `invalid_scope` during sign-in: the client asked for scopes other than `management:read`, `management:write`, and `offline_access`. Report it as a client compatibility bug with `authflow_send_feedback` (`kind` `bug`, naming the client) once the user has reconnected; until then, tell the user, since the management tools are unavailable.
+- `not_authorized` (`401`/`403`) with "Reconnect the management client": the sign-in expired, was revoked, or was granted read-only. Re-authorize the `authflow` MCP in the client, approving read and write access for the right workspace.
+- `invalid_scope` during sign-in: the client asked for scopes other than `management:read`, `management:write`, and `offline_access`. Tell the user, since the management tools are unavailable, and report it with the `feedback` skill as `client_compat`, naming the client; that skill covers sending without the MCP.
 - `validation_failed`: fix the arguments against the tool description; nothing changed.
+- An error that says the problem looks like it is on Authflow's side: report it once with the `feedback` skill, copying its `request_id`, then continue.
 
 ## Stripe status
 
 `ready` is the only state that lets a paid MCP publish. `not_connected`: start `authflow_stripe_action`. `action_required`, `pending_verification`, `pending`, `restricted`: the user has Stripe requirements to finish in the browser. `revoked`: connect an account again.
 
-If none of this explains it, search the docs with `authflow_search_docs`. A search with no results is a documentation gap, not a reason to guess: say so, and report it with `authflow_send_feedback` (`kind` `docs_gap`).
+If none of this explains it, search the docs with `authflow_search_docs`. A search with no results is a documentation gap, not a reason to guess: say so.
 
-## Report what was hard
-
-Tool errors end with "If this did not tell you what to do next, report it with authflow_send_feedback." Take them up on it. Once you have resolved or worked around a problem that the error message, the docs, or the tools made harder than it should have been, call `authflow_send_feedback` once for that issue: the `kind`, a one-line `summary`, the `tool_name`, the `error_text` word for word, and the `workaround` you used. Never include keys, tokens, or the user's data. Then carry on; no reply will come. If the management MCP is not connected at all, tell the user; the CLI can send the same report with `npx -y -p authflow-cli@0.7.0 authflow feedback`.
+Once you have resolved or worked around anything an Authflow error, doc, or missing tool made harder than it should have been, report it once with the `feedback` skill, then carry on.

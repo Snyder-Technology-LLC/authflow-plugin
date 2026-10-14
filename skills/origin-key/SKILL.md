@@ -11,15 +11,17 @@ The key never passes through the conversation. The `authflow` CLI writes it stra
 
 This needs a shell on a machine that can reach the secret destination, and Node.js 22.12 or later.
 
-## 1. Authorize the CLI
+## 1. Get the commands from the plan
 
-```bash
-npx -y -p authflow-cli@0.7.0 authflow login --issuer https://staging.rails.authflow.ai --workspace <workspace-id>
-```
+Call `authflow_integration_plan` with `workspace_id`, `slug`, and the framework. For a paid `origin_reported` resource, one of its steps gives the exact `login` and `resource rotate-key` commands for this resource, with the CLI version, issuer, and workspace already filled in. Use them as returned; do not write them from memory or change the version or issuer. If the plan has no such step, the resource needs no key.
 
-This opens the browser for sign-in and consent and stores the login in the operating system's credential store. Use the workspace id from `authflow_list_workspaces`. `--no-browser` prints the sign-in URL instead of opening it. Either way, the browser's callback must reach this machine.
+If the `authflow` MCP is not connected yet, explain the steps by name (sign in with `authflow login`, then `authflow resource rotate-key <slug>` with a secret destination, as below), and get the exact commands from the plan once it is.
 
-## 2. Choose the destination with the user
+## 2. Authorize the CLI
+
+Run the plan's `login` command. It opens the browser for sign-in and consent and stores the login in the operating system's credential store. Add `--no-browser` to print the sign-in URL instead of opening it. Either way, the browser's callback must reach this machine.
+
+## 3. Choose the destination with the user
 
 | `--write-secrets` | `--secret-destination` | Use for |
 | --- | --- | --- |
@@ -29,16 +31,19 @@ This opens the browser for sign-in and consent and stores the login in the opera
 
 For `env-file`, confirm the file is in `.gitignore` before writing it.
 
-## 3. Rotate and deliver
+## 4. Rotate and deliver
 
-```bash
-npx -y -p authflow-cli@0.7.0 authflow resource rotate-key <slug> --issuer https://staging.rails.authflow.ai --workspace <workspace-id> --write-secrets <keyvault|user-secrets|env-file> --secret-destination <destination>
+Run the plan's `rotate-key` command, keeping its `npx` prefix, `--issuer`, and `--workspace` exactly as given, and add the destination the user chose:
+
+```text
+authflow resource rotate-key <slug> --issuer <plan issuer> --workspace <workspace-id> --write-secrets <keyvault|user-secrets|env-file> --secret-destination <destination>
 ```
 
 The destination is validated before a key is issued. Key Vault secret names include the resource identity, so two resources do not overwrite each other.
 
-## 4. Afterwards
+## 5. Afterwards
 
 - A successful delivery reports `deployment_updated: false`. The app still has to read the secret (configuration key `Authflow:OriginApiKey` or environment variable `AUTHFLOW_ORIGIN_API_KEY`) and be redeployed. Help wire the secret reference into the deployment, then verify again with `authflow_verify_resource`.
 - If delivery fails, the previous key may already be revoked. Fix the destination, check the resource with `authflow_get_resource`, and only then ask the user before rotating again. The CLI never retries rotation on its own.
 - `authflow logout` revokes the CLI's authorization and removes its stored credential. `--local-only` clears this device only.
+- When a plan step, CLI error, or doc made this harder than it should have been, report it once with the `feedback` skill, then continue.

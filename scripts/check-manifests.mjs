@@ -1,21 +1,21 @@
 #!/usr/bin/env node
 // Each client reads its own manifest. This keeps them describing the same plugin:
-// one version, the same MCP servers and URLs, and portable skills.
+// one version, the same MCP servers and URLs, the headers Rail reads to recognize the plugin,
+// one authflow-cli version everywhere, and portable skills.
 import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
+import { cliPins, readJson as read, root, semver } from "./lib/repo.mjs";
 
-const root = new URL("..", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 const errors = [];
-const read = async (path) => JSON.parse(await readFile(join(root, path), "utf8"));
 const check = (ok, message) => { if (!ok) errors.push(message); };
 
-const claude = await read(".claude-plugin/plugin.json");
-const claudeMarket = await read(".claude-plugin/marketplace.json");
-const claudeMcp = await read(".mcp.json");
-const agent = await read("plugin.json");
-const agentMcp = await read("mcp.json");
-const codexMarket = await read(".agents/plugins/marketplace.json");
-const gemini = await read("gemini-extension.json");
+const claude = read(".claude-plugin/plugin.json");
+const claudeMarket = read(".claude-plugin/marketplace.json");
+const claudeMcp = read(".mcp.json");
+const agent = read("plugin.json");
+const agentMcp = read("mcp.json");
+const codexMarket = read(".agents/plugins/marketplace.json");
+const gemini = read("gemini-extension.json");
 
 const name = claude.name;
 for (const [file, value] of [["plugin.json", agent.name], ["gemini-extension.json", gemini.name],
@@ -23,29 +23,44 @@ for (const [file, value] of [["plugin.json", agent.name], ["gemini-extension.jso
   check(value === name, `${file}: plugin name ${value} differs from ${name}`);
 
 const version = claude.version;
-check(/^\d+\.\d+\.\d+$/.test(version ?? ""), `.claude-plugin/plugin.json: version ${version} is not semver`);
+check(semver.test(version ?? ""), `.claude-plugin/plugin.json: version ${version} is not semver`);
 for (const [file, value] of [["plugin.json", agent.version], ["gemini-extension.json", gemini.version]])
   check(value === version, `${file}: version ${value} differs from ${version}`);
 for (const [file, value] of [["plugin.json", agent.description], ["gemini-extension.json", gemini.description]])
   check(value === claude.description, `${file}: description differs from .claude-plugin/plugin.json`);
 
-// Server name -> URL, per client file, normalized from each client's shape.
+// Server name -> URL and headers, per client file, normalized from each client's shape.
 const servers = {
   ".mcp.json": Object.fromEntries(Object.entries(claudeMcp.mcpServers).map(([k, v]) => {
     check(v.type === "http", `.mcp.json: ${k} must use type http`);
-    return [k, v.url];
+    return [k, { url: v.url, headers: v.headers }];
   })),
   "mcp.json": Object.fromEntries(Object.entries(agentMcp.mcpServers).map(([k, v]) => {
     check(v.type === "streamable-http", `mcp.json: ${k} must use type streamable-http`);
-    return [k, v.url];
+    return [k, { url: v.url, headers: v.headers }];
   })),
-  "gemini-extension.json": Object.fromEntries(Object.entries(gemini.mcpServers).map(([k, v]) => [k, v.httpUrl])),
+  "gemini-extension.json": Object.fromEntries(Object.entries(gemini.mcpServers).map(([k, v]) => [k, { url: v.httpUrl, headers: v.headers }])),
 };
-const expected = JSON.stringify(Object.entries(servers[".mcp.json"]).sort());
+// Rail reads these headers to tell an outdated plugin how to update, so each client's manifest
+// names that client and the version it ships. X-Authflow-* is Rail's reserved trust namespace.
+const clients = { ".mcp.json": "claude-code", "mcp.json": "agent-plugins", "gemini-extension.json": "gemini-cli" };
+const urls = (map) => JSON.stringify(Object.entries(map).map(([k, v]) => [k, v.url]).sort());
+const expected = urls(servers[".mcp.json"]);
 for (const [file, map] of Object.entries(servers)) {
-  check(JSON.stringify(Object.entries(map).sort()) === expected, `${file}: MCP servers differ from .mcp.json`);
-  for (const [k, url] of Object.entries(map)) check(/^https:\/\//.test(url ?? ""), `${file}: ${k} must be an https URL`);
+  check(urls(map) === expected, `${file}: MCP servers differ from .mcp.json`);
+  for (const [k, { url, headers }] of Object.entries(map)) {
+    check(/^https:\/\/[^?#\s]+$/.test(url ?? ""), `${file}: ${k} must be an https URL without a query or fragment`);
+    check(headers?.["Authflow-Plugin-Version"] === version, `${file}: ${k} must send header Authflow-Plugin-Version: ${version}`);
+    check(headers?.["Authflow-Plugin-Client"] === clients[file], `${file}: ${k} must send header Authflow-Plugin-Client: ${clients[file]}`);
+    for (const header of Object.keys(headers ?? {}))
+      check(!/^x-authflow-/i.test(header), `${file}: ${k} header ${header} is in Rail's reserved X-Authflow- namespace`);
+  }
 }
+
+// Every command a skill, the README or an eval gives runs the same authflow-cli.
+const pins = cliPins();
+for (const [pin, where] of pins) check(semver.test(pin), `authflow-cli@${pin} is not an exact X.Y.Z version (${where.join(", ")})`);
+check(pins.size <= 1, `authflow-cli pins differ: ${[...pins].map(([pin, where]) => `${pin} at ${where.join(", ")}`).join("; ")}`);
 
 // Skills are shared by every client, so frontmatter stays within the portable Agent Skills fields.
 const skills = (await readdir(join(root, "skills"), { withFileTypes: true })).filter((d) => d.isDirectory());
@@ -68,4 +83,5 @@ if (errors.length) {
   console.error(errors.map((e) => `error: ${e}`).join("\n"));
   process.exit(1);
 }
-console.log(`manifests consistent: ${name}@${version}, ${Object.keys(servers[".mcp.json"]).length} MCP servers, ${skills.length} skills`);
+const pin = pins.size ? `, authflow-cli@${[...pins.keys()][0]}` : "";
+console.log(`manifests consistent: ${name}@${version}, ${Object.keys(servers[".mcp.json"]).length} MCP servers, ${skills.length} skills${pin}`);

@@ -3,7 +3,11 @@
   "mcpServers": {
     "authflow": {
       "type": "streamable-http",
-      "url": "https://staging.rails.authflow.ai/management/mcp"
+      "url": "https://staging.rails.authflow.ai/management/mcp",
+      "headers": {
+        "Authflow-Plugin-Version": "0.4.0",
+        "Authflow-Plugin-Client": "agent-plugins"
+      }
     }
   }
 }

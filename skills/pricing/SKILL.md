@@ -40,3 +40,5 @@ Then use `origin_reported`. Never charge the same operation through both.
 ## Changing the offer later
 
 Use `authflow_update_resource`. Omitted fields are preserved. Any change to the offer or metering invalidates verification and publication: verify again with `authflow_verify_resource`, then ask the user before publishing again. Display-name-only changes keep verification.
+
+If an Authflow tool or doc about offers or metering was unclear or wrong, report it once with the `feedback` skill, then continue.

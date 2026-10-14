@@ -1,0 +1,51 @@
+# Tags and releases each plugin version that reaches main. Gemini CLI installs and updates from
+# GitHub Releases once the repository has one, so every version needs a release; the other clients
+# read main directly. The version comes from .claude-plugin/plugin.json and the notes from that
+# version's CHANGELOG.md entry; check-version-bump.mjs makes pull requests provide both.
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # The default token credentials stay configured so the tag can be pushed.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Tag and release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="$(node -p "require('./.claude-plugin/plugin.json').version")"
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::.claude-plugin/plugin.json version '$version' is not X.Y.Z"
+            exit 1
+          fi
+          tag="v$version"
+          if gh release view "$tag" > /dev/null 2>&1; then
+            echo "$tag is already released"
+            exit 0
+          fi
+          # Fails before tagging when the version has no CHANGELOG entry.
+          node scripts/changelog-section.mjs "$version" > "$RUNNER_TEMP/notes.md"
+          # A run that pushed the tag but failed before releasing is finished by the next push.
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" > /dev/null; then
+            echo "$tag already exists"
+          else
+            git tag "$tag" "$GITHUB_SHA"
+            git push origin "refs/tags/$tag"
+          fi
+          gh release create "$tag" --verify-tag --title "authflow $version" --notes-file "$RUNNER_TEMP/notes.md" --latest
